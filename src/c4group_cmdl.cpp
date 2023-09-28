@@ -42,6 +42,8 @@
 #include <shellapi.h>
 #include <conio.h>
 
+#include <string>
+
 int globalArgC;
 char **globalArgV;
 int iFirstCommand = -1;
@@ -52,6 +54,7 @@ bool fRegisterShell = false;
 bool fUnregisterShell = false;
 bool fPromptAtEnd = false;
 char strExecuteAtEnd[_MAX_PATH + 1] = "";
+std::string configFile{};
 
 int iResult = 0;
 
@@ -458,6 +461,8 @@ int main(int argc, char *argv[])
 			case 'p': fPromptAtEnd = true; break;
 			// Execute at end
 			case 'x': SCopy(argv[i] + 3, strExecuteAtEnd, _MAX_PATH); break;
+			// Use custom config
+			case 'c': configFile = argv[i] + 3; break;
 			// Unknown
 			default: printf("Unknown option %s\n", argv[i]); break;
 			}
@@ -475,7 +480,14 @@ int main(int argc, char *argv[])
 
 	// Load configuration
 	Config.Init();
-	Config.Load(false);
+	if (configFile.empty())
+	{
+		Config.Load(false);
+	}
+	else
+	{
+		Config.Load(false, configFile.c_str());
+	}
 
 	// Init C4Group
 	C4Group_SetMaker(Config.General.Name);

@@ -39,6 +39,8 @@
 #include <C4Update.h>
 #include <C4Config.h>
 
+#include <string>
+
 // from http://cboard.cprogramming.com/archive/index.php/t-27714.html
 #include <stdio.h>
 #include <termios.h>
@@ -66,6 +68,7 @@ bool fRegisterShell = false;
 bool fUnregisterShell = false;
 bool fPromptAtEnd = false;
 char strExecuteAtEnd[_MAX_PATH + 1] = "";
+std::string configFile{};
 
 int iResult = 0;
 
@@ -507,6 +510,8 @@ int main(int argc, char *argv[])
 			case 'p': fPromptAtEnd = true; break;
 			// Execute at end
 			case 'x': SCopy(argv[i] + 3, strExecuteAtEnd, _MAX_PATH); break;
+			// Use custom config
+			case 'c': configFile = argv[i] + 3; break;
 			// Unknown
 			default:
 				fprintf(stderr, "Unknown option %s\n", argv[i]);
@@ -529,7 +534,14 @@ int main(int argc, char *argv[])
 
 	// Load configuration
 	Config.Init();
-	Config.Load(false);
+	if (configFile.empty())
+	{
+		Config.Load(false);
+	}
+	else
+	{
+		Config.Load(false, configFile.c_str());
+	}
 
 	// Init C4Group
 	C4Group_SetMaker(Config.General.Name);
