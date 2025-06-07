@@ -41,6 +41,7 @@
 
 #include <format>
 #include <print>
+#include <string>
 #include <string_view>
 
 #include <fmt/printf.h>
@@ -85,6 +86,7 @@ bool fRegisterShell = false;
 bool fUnregisterShell = false;
 bool fPromptAtEnd = false;
 char strExecuteAtEnd[_MAX_PATH + 1] = "";
+std::string configFile{};
 
 int iResult = 0;
 
@@ -578,6 +580,10 @@ int main(int argc, char *argv[])
 			case 'x':
 				SCopy(argv[i] + 3, strExecuteAtEnd, _MAX_PATH);
 				break;
+			// Use custom config
+			case 'c':
+				configFile = argv[i] + 3;
+				break;
 			// Unknown
 			default:
 				std::println(stderr, "Unknown option {}", argv[i]);
@@ -600,7 +606,14 @@ int main(int argc, char *argv[])
 
 	// Load configuration
 	Config.Init();
-	Config.Load(false);
+	if (configFile.empty())
+	{
+		Config.Load(false);
+	}
+	else
+	{
+		Config.Load(false, configFile.c_str());
+	}
 
 	// Init C4Group
 	C4Group_SetMaker(Config.General.Name);
