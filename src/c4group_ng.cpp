@@ -226,6 +226,7 @@ bool ProcessGroup(const char *FilenamePar)
 						break;
 					// Delete
 					case 'd':
+						Log("Deleting...");
 						if ((iArg + 1 >= argc) || (argv[iArg + 1][0] == '-'))
 						{
 							std::println(stderr, "Missing argument for delete command");
@@ -287,7 +288,7 @@ bool ProcessGroup(const char *FilenamePar)
 						break;
 					// Pack
 					case 'p':
-						std::println("Packing...");
+						Log("Packing...");
 						// Close
 						if (!hGroup.Close())
 						{
@@ -325,7 +326,7 @@ bool ProcessGroup(const char *FilenamePar)
 						break;
 					// Unpack
 					case 'x':
-						std::println("Exploding...");
+						Log("Exploding...");
 						// Close
 						if (!hGroup.Close())
 						{
@@ -348,6 +349,7 @@ bool ProcessGroup(const char *FilenamePar)
 						break;
 					// Generate update
 					case 'g':
+						Log("Generating update...");
 						if ((iArg + 3 >= argc) || (argv[iArg + 1][0] == '-')
 							|| (argv[iArg + 2][0] == '-')
 							|| (argv[iArg + 3][0] == '-'))
@@ -378,7 +380,7 @@ bool ProcessGroup(const char *FilenamePar)
 
 					// Apply an update
 					case 'y':
-						std::println("Applying update...");
+						Log("Applying update...");
 						if (C4Group_ApplyUpdate(hGroup))
 						{
 							if (argv[iArg][2] == 'd') fDeleteGroup = true;
@@ -397,7 +399,7 @@ bool ProcessGroup(const char *FilenamePar)
 					case 'w':
 						if (iArg + 1 >= argc || argv[iArg + 1][0] == '-')
 						{
-							std::println("Missing argument for wait command");
+							std::println(stderr, "Missing argument for wait command");
 						}
 						else
 						{
@@ -407,21 +409,24 @@ bool ProcessGroup(const char *FilenamePar)
 							if (milliseconds > 0)
 							{
 								// Wait for specified time
-								std::println("Waiting..");
+								Log("Waiting...");
 								Sleep(milliseconds);
 							}
 							else
 							{
 								// Wait for specified process to end
-								std::println("Waiting for {} to end", argv[iArg + 1]);
+								Log("Waiting for {} to end", argv[iArg + 1]);
 
 								for (std::size_t i{0}; i < 5 && FindWindowA(nullptr, argv[iArg + 1]); ++i)
 								{
 									Sleep(1000);
-									std::print(".");
+									if (!fQuiet)
+									{
+										std::print(".");
+									}
 								}
 
-								std::println("");
+								Log("");
 							}
 
 							++iArg;
@@ -566,9 +571,13 @@ int main(int argc, char *argv[])
 				fUnregisterShell = true;
 				break;
 			// Prompt at end
-			case 'p': fPromptAtEnd = true; break;
+			case 'p':
+				fPromptAtEnd = true;
+				break;
 			// Execute at end
-			case 'x': SCopy(argv[i] + 3, strExecuteAtEnd, _MAX_PATH); break;
+			case 'x':
+				SCopy(argv[i] + 3, strExecuteAtEnd, _MAX_PATH);
+				break;
 			// Unknown
 			default:
 				std::println(stderr, "Unknown option {}", argv[i]);
@@ -599,10 +608,7 @@ int main(int argc, char *argv[])
 	C4Group_SetSortList(C4CFN_FLS);
 
 	// Display current working directory
-	if (!fQuiet)
-	{
-		std::println("Location: {}", GetWorkingDirectory());
-	}
+	Log("Location: {}", GetWorkingDirectory());
 
 	// Store command line parameters
 	globalArgC = argc;
@@ -611,15 +617,15 @@ int main(int argc, char *argv[])
 	// Register shell
 	if (fRegisterShell)
 		if (RegisterShellExtensions())
-			std::println("Shell extensions registered.");
+			Log("Shell extensions registered.");
 		else
-			std::println("Error registering shell extensions.");
+			std::println(stderr, "Error registering shell extensions.");
 	// Unregister shell
 	if (fUnregisterShell)
 		if (UnregisterShellExtensions())
-			std::println("Shell extensions removed.");
+			Log("Shell extensions removed.");
 		else
-			std::println("Error removing shell extensions.");
+			std::println(stderr, "Error removing shell extensions.");
 
 	// At least one parameter (filename, not option or command): process file(s)
 	if (iFirstGroup)
@@ -673,7 +679,7 @@ int main(int argc, char *argv[])
 	// Execute when done
 	if (strExecuteAtEnd[0])
 	{
-		std::println("Executing: {}", strExecuteAtEnd);
+		Log("Executing: {}", strExecuteAtEnd);
 
 #ifdef _WIN32
 		STARTUPINFOA startInfo{};
